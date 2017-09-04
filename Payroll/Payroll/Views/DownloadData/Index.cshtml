@@ -1,0 +1,36 @@
+﻿@using Payroll.Models.DownloadData
+@model DownloadDataViewModel
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>DOWNLOAD DATA</h2>
+
+<body>
+<div class="row" Name="IpAddress">
+    @using (Html.BeginForm("ConnectBiometric", "DownloadData", FormMethod.Post))
+    {
+        <div class="form-group">
+            @Html.LabelFor(m => m.IpAddress, new {@class = "col-md-2 control-label"})
+            <div class="col-md-10">
+                @Html.TextBoxFor(m => m.IpAddress, new {@class = "form-control", @placeholder = "IpAddress"})
+                @Html.ValidationMessageFor(m => m.IpAddress, "", new {@class = "text-danger"})
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(m => m.Port, new { @class = "col-md-2 control-label" })
+            <div class="col-md-10">
+                @Html.TextBoxFor(m => m.Port, new { @class = "form-control", @placeholder = "Port" })
+                @Html.ValidationMessageFor(m => m.Port, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Connect" class="btn btn-default" />
+            </div>
+        </div>
+    }
+    
+</div>
+</body>
+    
