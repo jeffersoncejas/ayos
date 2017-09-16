@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
@@ -9,6 +10,7 @@ using Payroll.Helper.Biometric;
 using Payroll.Models;
 using Payroll.Models.DownloadData;
 using Riss.Devices;
+using Payroll.DataAccess.EntityFramework;
 
 namespace Payroll.Controllers
 {
@@ -19,8 +21,7 @@ namespace Payroll.Controllers
         private DeviceConnection deviceConnection;
         private DeviceComEty deviceEty;
         #endregion
-
-        //public ObservableCollection<DownloadDataViewModel> ListDownloadData { get; } = new ObservableCollection<DownloadDataViewModel>();
+        public List<DownloadDataViewModel> ListDownloadData { get; set; } = new List<DownloadDataViewModel>();
 
         // GET: DownloadData
         public ActionResult Index() //this is one page bale localhost:portnum/DownloadData/Index
@@ -72,10 +73,10 @@ namespace Payroll.Controllers
                 return View("Index");
             }
         }
-        //public ObservableCollection<> ListDownloadData { get; } = new ObservableCollection<>();
+        [HttpPost]
         public ActionResult DownloadDataBiometric()
         {
-            List<DownloadDataViewModel> list = new List<DownloadDataViewModel>();
+            //List<DownloadDataViewModel> list = new List<DownloadDataViewModel>();
 
             //------------------------------------------ BINUGO CODE
             device = new Device();
@@ -122,7 +123,7 @@ namespace Payroll.Controllers
                 
                 if (0 == recordCount)
                 {//为0时说明没有新日志记录
-                    list.Clear();
+                    ListDownloadData.Clear();
                 }
 
                 List<bool> boolList = new List<bool>();
@@ -139,17 +140,20 @@ namespace Payroll.Controllers
                     int i = 1;
                     int y = 0;
                     List<Record> recordList = (List<Record>)extraData;
-                    list.Clear();
+                    ListDownloadData.Clear();
                     foreach (Record record in recordList)
                     {
-                        list.Add(new DownloadDataViewModel{SN = i,
+                        ListDownloadData.Add(new DownloadDataViewModel{SN = i.ToString(),
                                                            DN = record.DN.ToString(),
                                                            DIN = record.DIN.ToString(),
                                                            Type = ConvertObject.GLogType(record.Verify),
                                                            mode = ConvertObject.IOMode(record.Action),
                                                            Clock = record.Clock.ToString("yyyy-MM-dd HH:mm:ss") });
                         i++;
+
+                        
                     }
+                    Session["SessionName"] = ListDownloadData;
                 }
                 else
                 {
@@ -160,9 +164,37 @@ namespace Payroll.Controllers
             {
                 TempData["msg"] = "<script>alert('Download Failed');</script>";
             }
+            
 
-            return View("ConnectBiometric",list);
+            return View("ConnectBiometric", ListDownloadData);
         }
 
+
+        public ActionResult UploadData()
+        {
+            try
+            {
+                var ListName = (List<DownloadDataViewModel>)Session["SessionName"];
+                PayrollContext db = new PayrollContext();
+                foreach (var item in ListName)
+                {
+                    UploadData up = new UploadData();
+                    up.Dn = Convert.ToInt32(item.DN);
+                    up.Din = Convert.ToInt32(item.DIN);
+                    up.Type = item.Type;
+                    up.Mode = item.mode;
+                    up.Clock = Convert.ToDateTime(item.Clock) ;
+                    up.DateUpload = DateTime.Now;
+                    db.UploadDatas.Add(up);
+                    db.SaveChanges();
+                }
+            }
+            catch (Exception)
+            {
+                
+                throw;
+            }
+            return View("ConnectBiometric");
+        }
     }
 }

@@ -34,7 +34,10 @@
 
             </div>
             <div class="col-md-1 col-sm-8 col-xs-10 col-md-offset-2">
-                <input type="submit" value="submit" class="btn btn-primary btn-sm"/>
+                @using (Html.BeginForm("UploadData", "DownloadData", FormMethod.Post))
+                {
+                    <input type="submit" value="UPLOAD" class="btn btn-primary btn-sm" />
+                }
             </div>
         </div>
     </div>
